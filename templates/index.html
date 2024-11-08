@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cashie</title>
+    <!-- Bootstrap and FontAwesome -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+    <style>
+        /* General body styling */
+        body {
+            background-color: #f4f7fa;
+            font-family: 'Arial', sans-serif;
+        }
+
+        /* Chat message styling */
+        .chat-container {
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 15px;
+        height:100vh;
+        max-height: 70vh;
+        overflow-y: auto;
+        margin-bottom: 20px;
+        background-color: #ffffff;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+    }
+
+        .user-message, .bot-message {
+            margin: 5px 0;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideIn 0.3s forwards ease-out;
+        }
+
+        .user-message {
+        text-align: right;
+    }
+
+    .bot-message {
+        text-align: left;
+    }
+
+        .user-message p,
+        .bot-message p {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 5px;
+            max-width: 70%;
+            font-size: 0.9rem;
+        }
+
+        .user-message p {
+            background-color: #ff3333;
+            color: white;
+            border-radius: 20px 20px 0 20px;
+            box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
+        }
+
+        .bot-message p {
+            background-color: #f1f1f1;
+            color: black;
+            border-radius: 0 20px 20px 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Custom styles for the upload button */
+        .upload-button {
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 15px;
+            margin-right: 10px;
+            display: inline-block;
+        }
+
+        .upload-button input[type="file"] {
+            position: absolute;
+            top: 0;
+            right: 0;
+            opacity: 0;
+            cursor: pointer;
+            height: 100%;
+            width: 100%;
+        }
+
+        .btn-clip {
+            display: flex;
+            align-items: center;
+            border-radius: 50%;
+            background-color: #ff3333;
+            color: white;
+            padding: 8px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 123, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .btn-clip:hover {
+            transform: scale(1.1);
+        }
+
+        /* Loading spinner */
+        #loadingSpinner {
+            margin: 10px 0;
+        }
+        .spinner-border {
+            color: #ff3333;
+            animation: rotateSpinner 1s linear infinite;
+        }
+
+        /* Card styles */
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Header styles */
+        h1 {
+            font-size: 2rem;
+            color: #333;
+        }
+
+        h2.card-title {
+            font-size: 1.5rem;
+            color: #ff3333;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* Styling for the chat input and send button */
+        .form-group.input-group {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .upload-button,
+        #askButton {
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #askButton {
+            background-color: #ff3333;
+            color: white;
+            border-radius: 0 30px 30px 0;
+            border: none;
+            padding: 8px 15px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            transition: background-color 0.3s, transform 0.3s ease;
+        }
+
+        #askButton:hover {
+            background-color: #ff3200;
+            transform: scale(1.05);
+        }
+
+        /* Keyframes for animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes rotateSpinner {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Media queries for responsiveness */
+        @media (max-width: 768px) {
+            .user-message p,
+            .bot-message p {
+                font-size: 0.8rem;
+                padding: 6px 10px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            h2.card-title {
+                font-size: 1.4rem;
+            }
+
+            #askButton,
+            .upload-button .btn-clip {
+                padding: 6px;
+            }
+
+            .form-control {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-1">
+        <div class="card my-4">
+            <div class="card-body">
+                <h2 class="card-title">CASHIE</h2>
+                <div class="chat-container" id="chatContainer">
+                    <!-- Chat messages will be displayed here -->
+                </div>
+                <div id="loadingSpinner" class="text-center" style="display: none;">
+                    <div class="spinner-border" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+                <div class="form-group input-group mb-3">
+                    <div class="upload-button">
+                        <button class="btn btn-clip">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <input type="file" name="file" id="fileInput" required>
+                    </div>
+                    <input type="text" id="questionInput" class="form-control" placeholder="Type your message..." required>
+                    <div class="input-group-append">
+                        <button id="askButton" class="btn btn-outline-secondary">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        // Function to format message content
+        function formatMessage(content) {
+            return content
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/"(.*?)"/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+        }
+    
+        // Function to add message to chat container
+        function addMessageToChat(role, content, isImage = false) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add(`${role}-message`);
+    
+            if (isImage) {
+                messageDiv.innerHTML = `<p><img src="${content}" alt="Uploaded Image" style="max-width: 150px; border-radius: 10px;"></p>`;
+            } else {
+                messageDiv.innerHTML = `<p>${formatMessage(content)}</p>`;
+            }
+    
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    
+        // Function to fetch and display greeting on page load
+        async function loadGreeting() {
+            const response = await fetch('/greet');
+            const data = await response.json();
+            addMessageToChat('bot', data.greeting);
+        }
+    
+        // Function to handle sending message
+        async function sendMessage() {
+            const message = document.getElementById('questionInput').value;
+            if (!message) return;
+    
+            addMessageToChat('user', message);
+            document.getElementById('loadingSpinner').style.display = 'block';
+    
+            const response = await fetch('/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            });
+            const data = await response.json();
+            document.getElementById('loadingSpinner').style.display = 'none';
+    
+            addMessageToChat('bot', data.reply);
+            document.getElementById('questionInput').value = '';
+        }
+    
+        // Handle file uploads
+        document.querySelector('.upload-button input[type="file"]').onchange = async function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+    
+            // Use FileReader to display the uploaded image as a preview
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const imgSrc = event.target.result;
+                addMessageToChat('user', imgSrc, true); // Display the image in the chat
+                document.getElementById('loadingSpinner').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+    
+            // Send the image file to the server
+            const formData = new FormData();
+            formData.append('file', file);
+    
+            const response = await fetch('/upload', { method: 'POST', body: formData });
+            const result = await response.text();
+            document.getElementById('loadingSpinner').style.display = 'none';
+    
+            // Display the bot's response after the image upload
+            addMessageToChat('bot', result);
+        };
+    
+        document.getElementById('askButton').onclick = sendMessage;
+        document.getElementById('questionInput').addEventListener('keydown', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+    
+        window.onload = loadGreeting;
+    </script>
+    
+    
+</body>
+</html>
+
